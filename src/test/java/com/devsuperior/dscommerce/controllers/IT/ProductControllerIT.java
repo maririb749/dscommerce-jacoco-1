@@ -1,6 +1,7 @@
 package com.devsuperior.dscommerce.controllers.IT;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -12,8 +13,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.devsuperior.dscommerce.dto.ProductDTO;
+import com.devsuperior.dscommerce.entities.Category;
+import com.devsuperior.dscommerce.entities.Product;
 import com.devsuperior.dscommerce.tests.TokenUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,21 +33,37 @@ public class ProductControllerIT {
 	@Autowired
 	private TokenUtil tokenUtil;
 	
-	
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	private String  adminToken;
+	
+	private String adminUsername, adminPassword;
 	
 	private String productName;
 	
 	private Long existingId,nonExistingId;
 	
+	private ProductDTO productDTO;
+	private Product product;
+	
 	 @BeforeEach
 	    public void setUp() throws Exception {
-		 
+			 
 		 existingId = 2L;
 		 nonExistingId = 100L;
 		 
 	     productName = "MacBook"; 
+	     
+	    adminUsername = "alex@gmail.com";
+	 	adminPassword = "123456";
+	     
+	     adminToken = tokenUtil.obtainAccessToken(mockMvc, adminUsername, adminPassword);
+	     
+	     Category category = new Category(2L, null);
+			product = new Product(null, "Console PlayStation 5", "Lorem ipsum dolor sit amet, consectetur adipiscing elit", 3999.90, "https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg");
+			product.getCategories().add(category);
+			productDTO = new ProductDTO(product);
 	    
 	    }
 	 
@@ -94,5 +115,28 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isNotFound());
 		}
+		
+		@Test
+		public void insertShouldReturnProductDTOCreatedWhenLoggedAsAdmin() throws Exception {
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(post("/products")
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON))
+						.andDo(MockMvcResultHandlers.print());
+			
+			result.andExpect(status().isCreated());
+			result.andExpect(jsonPath("$.id").value(26L));
+			result.andExpect(jsonPath("$.name").value("Console PlayStation 5"));
+			result.andExpect(jsonPath("$.description").value("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
+			result.andExpect(jsonPath("$.price").value(3999.90));
+			result.andExpect(jsonPath("$.imgUrl").value("https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg"));
+			result.andExpect(jsonPath("$.categories[0].id").value(2L));
+		}
+	
 
 }
