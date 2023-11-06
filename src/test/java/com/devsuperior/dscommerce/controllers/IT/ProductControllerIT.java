@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.devsuperior.dscommerce.dto.ProductDTO;
@@ -44,7 +45,7 @@ public class ProductControllerIT {
 	
 	private String productName;
 	
-	private Long existingId,nonExistingId;
+	private Long existingId,nonExistingId,dependentId;
 	
 	private ProductDTO productDTO;
 	private Product product;
@@ -54,6 +55,7 @@ public class ProductControllerIT {
 			 
 		 existingId = 2L;
 		 nonExistingId = 100L;
+		 dependentId = 3L;
 
 	     productName = "MacBook"; 
 	     
@@ -281,5 +283,15 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isNotFound());
 		}
-		
+		@Test
+		@Transactional(propagation = Propagation.SUPPORTS)
+		public void deleteShouldReturnBadRequestWhenIdIsDependentAndAdminLogged() throws Exception {
+
+			ResultActions result = 
+					mockMvc.perform(delete("/products/{id}", dependentId)
+						.header("Authorization", "Bearer " + adminToken)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isBadRequest());
+		}
 }
