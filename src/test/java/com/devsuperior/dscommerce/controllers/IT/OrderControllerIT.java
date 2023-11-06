@@ -72,6 +72,9 @@ void setUp() throws Exception {
     
     user = UserFactory.createClientUser();
     order = new Order(null, Instant.now(), OrderStatus.WAITING_PAYMENT, user, null);
+    Product product = ProductFactory.createProduct();
+	OrderItem orderItem = new OrderItem(order, product, 2, 10.0);
+	order.getItems().add(orderItem);
 	
     orderDTO = new OrderDTO(order);
     
@@ -188,6 +191,27 @@ public void insertShouldReturnUnprocessableEntityWhenClientLoggedAndOrderHasNoIt
 	result.andExpect(status().isUnprocessableEntity());
 }
 
+@Test
+public void insertShouldReturnOrderDTOCreatedWhenClientLogged() throws Exception {
+
+	String jsonBody = objectMapper.writeValueAsString(orderDTO);
+	
+	ResultActions result = 
+			mockMvc.perform(post("/orders")
+				.header("Authorization", "Bearer " + clientToken)
+				.content(jsonBody)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+				.andDo(MockMvcResultHandlers.print());
+	
+	result.andExpect(status().isCreated());
+	result.andExpect(jsonPath("$.id").value(4L));
+	result.andExpect(jsonPath("$.moment").exists());
+	result.andExpect(jsonPath("$.status").value("WAITING_PAYMENT"));
+	result.andExpect(jsonPath("$.client").exists());
+	result.andExpect(jsonPath("$.items").exists());
+	result.andExpect(jsonPath("$.total").exists());
+}
 
 
 
