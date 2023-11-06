@@ -1,8 +1,11 @@
 package com.devsuperior.dscommerce.controllers.IT;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,10 +15,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import com.devsuperior.dscommerce.dto.OrderDTO;
+import com.devsuperior.dscommerce.entities.Order;
+import com.devsuperior.dscommerce.entities.OrderItem;
+import com.devsuperior.dscommerce.entities.OrderStatus;
+import com.devsuperior.dscommerce.entities.Product;
 import com.devsuperior.dscommerce.entities.User;
+import com.devsuperior.dscommerce.tests.ProductFactory;
 import com.devsuperior.dscommerce.tests.TokenUtil;
 import com.devsuperior.dscommerce.tests.UserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +48,9 @@ private String  clientUsername, clientPassword;
 
 private String  adminToken, clientToken,invalidToken;
 
+
+private Order order;
+private OrderDTO orderDTO;
 private User user;
 
 
@@ -60,6 +71,9 @@ void setUp() throws Exception {
     nonExistingOrderId =100L;
     
     user = UserFactory.createClientUser();
+    order = new Order(null, Instant.now(), OrderStatus.WAITING_PAYMENT, user, null);
+	
+    orderDTO = new OrderDTO(order);
     
 }
 
@@ -156,6 +170,25 @@ public void findByIdShouldReturnUnautorizedWhenIdExistsAndInvalidToken() throws 
 	result.andExpect(status().isUnauthorized());
 	
 }
+@Test
+public void insertShouldReturnUnprocessableEntityWhenClientLoggedAndOrderHasNoItem() throws Exception {
+	
+	orderDTO.getItems().clear();
+
+	String jsonBody = objectMapper.writeValueAsString(orderDTO);
+	
+	ResultActions result = 
+			mockMvc.perform(post("/orders")
+				.header("Authorization", "Bearer " + clientToken)
+				.content(jsonBody)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+				.andDo(MockMvcResultHandlers.print());
+	
+	result.andExpect(status().isUnprocessableEntity());
+}
+
+
 
 
 }
