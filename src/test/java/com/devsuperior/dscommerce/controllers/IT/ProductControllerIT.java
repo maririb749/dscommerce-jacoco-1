@@ -54,7 +54,7 @@ public class ProductControllerIT {
 			 
 		 existingId = 2L;
 		 nonExistingId = 100L;
-		 
+
 	     productName = "MacBook"; 
 	     
 	    adminUsername = "alex@gmail.com";
@@ -270,6 +270,16 @@ public class ProductControllerIT {
 						.accept(MediaType.APPLICATION_JSON));
 			
 			result.andExpect(status().isNoContent());
+		}
+		@Test
+		public void deleteShouldReturnNotFoundWhenIdDoesNotExistAndAdminLogged() throws Exception {
+
+			ResultActions result = 
+					mockMvc.perform(delete("/products/{id}", nonExistingId)
+						.header("Authorization", "Bearer " + adminToken)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isNotFound());
 		}
 		
 }
