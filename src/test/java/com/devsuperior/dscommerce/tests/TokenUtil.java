@@ -39,7 +39,8 @@ public class TokenUtil {
                     .andExpect(status().isOk());
 
         MvcResult mvcResult = result.andReturn();
-        String content = mvcResult.getResponse().getContentAsString();
+        @SuppressWarnings("unused")
+		String content = mvcResult.getResponse().getContentAsString();
         Assertions.assertEquals("application/json;charset=UTF-8", mvcResult.getResponse().getContentType());
 
         String resultString = result.andReturn().getResponse().getContentAsString();
