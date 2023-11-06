@@ -36,9 +36,10 @@ public class ProductControllerIT {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
-	private String  adminToken;
+	private String  adminToken,clientToken;
 	
 	private String adminUsername, adminPassword;
+	private String clientUsername, clientPassword;
 	
 	private String productName;
 	
@@ -57,8 +58,12 @@ public class ProductControllerIT {
 	     
 	    adminUsername = "alex@gmail.com";
 	 	adminPassword = "123456";
+	 	
+	 	clientUsername = "maria@gmail.com";
+	 	clientPassword = "123456";
 	     
 	     adminToken = tokenUtil.obtainAccessToken(mockMvc, adminUsername, adminPassword);
+	     clientToken = tokenUtil.obtainAccessToken(mockMvc, clientUsername, clientPassword);
 	     
 	     Category category = new Category(2L, null);
 			product = new Product(null, "Console PlayStation 5", "Lorem ipsum dolor sit amet, consectetur adipiscing elit", 3999.90, "https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg");
@@ -225,4 +230,18 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isUnprocessableEntity());
 }
+		@Test
+		public void insertShouldReturnForbiddenWhenClientLogged() throws Exception {
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(post("/products")
+						.header("Authorization", "Bearer " + clientToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isForbidden());
+		}
 }
