@@ -36,7 +36,7 @@ public class ProductControllerIT {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
-	private String  adminToken,clientToken;
+	private String  adminToken,clientToken,invalidToken;
 	
 	private String adminUsername, adminPassword;
 	private String clientUsername, clientPassword;
@@ -64,6 +64,7 @@ public class ProductControllerIT {
 	     
 	     adminToken = tokenUtil.obtainAccessToken(mockMvc, adminUsername, adminPassword);
 	     clientToken = tokenUtil.obtainAccessToken(mockMvc, clientUsername, clientPassword);
+	     invalidToken = adminToken + "xpto"; 
 	     
 	     Category category = new Category(2L, null);
 			product = new Product(null, "Console PlayStation 5", "Lorem ipsum dolor sit amet, consectetur adipiscing elit", 3999.90, "https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg");
@@ -243,5 +244,19 @@ public class ProductControllerIT {
 						.accept(MediaType.APPLICATION_JSON));
 			
 			result.andExpect(status().isForbidden());
+		}
+		@Test
+		public void insertShouldReturnUnauthorizedWhenInvalidToken() throws Exception {
+
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result =
+					mockMvc.perform(post("/products")
+						.header("Authorization", "Bearer " + invalidToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnauthorized());
 		}
 }
