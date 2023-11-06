@@ -137,6 +137,24 @@ public class ProductControllerIT {
 			result.andExpect(jsonPath("$.imgUrl").value("https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg"));
 			result.andExpect(jsonPath("$.categories[0].id").value(2L));
 		}
+		
+		@Test
+		public void insertShouldReturnUnprocessableEntityWhenAdminLoggedAndInvalidName() throws Exception {
+			
+			product.setName("ab");
+			productDTO = new ProductDTO(product);
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(post("/products")
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnprocessableEntity());
+		}
 	
 
 }
