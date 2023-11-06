@@ -305,4 +305,15 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isForbidden());
 		}
+		@Test
+		public void deleteShouldReturnUnauthorizedWhenIdExistsAndInvalidToken() throws Exception {
+			
+			ResultActions result = 
+					mockMvc.perform(delete("/products/{id}", existingId)
+						.header("Authorization", "Bearer " + invalidToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnauthorized());
+		}
 }
