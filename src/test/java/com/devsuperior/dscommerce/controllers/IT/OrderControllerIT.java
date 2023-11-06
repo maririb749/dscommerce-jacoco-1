@@ -38,7 +38,7 @@ private Long existingOrderId,nonExistingOrderId;
 private String  adminUsername, adminPassword;
 private String  clientUsername, clientPassword;
 
-private String  adminToken, clientToken;
+private String  adminToken, clientToken,invalidToken;
 
 private User user;
 
@@ -54,6 +54,7 @@ void setUp() throws Exception {
     
     adminToken = tokenUtil.obtainAccessToken(mockMvc, adminUsername, adminPassword);
     clientToken = tokenUtil.obtainAccessToken(mockMvc, clientUsername, clientPassword);
+	invalidToken = adminToken + "xpto";
     
     existingOrderId = 1L;
     nonExistingOrderId =100L;
@@ -140,6 +141,19 @@ public void findByIdShouldReturnNotFoundWhenIdDoesNotExistsAndClientLogged() thr
 	            .andDo(MockMvcResultHandlers.print());
 	
 	result.andExpect(status().isNotFound());
+	
+}
+
+@Test
+public void findByIdShouldReturnUnautorizedWhenIdExistsAndInvalidToken() throws Exception {
+	
+	ResultActions result = 
+			mockMvc.perform(get("/orders/{id}", existingOrderId)
+				.header("Authorization", "Bearer " +invalidToken)
+				.accept(MediaType.APPLICATION_JSON))
+	            .andDo(MockMvcResultHandlers.print());
+	
+	result.andExpect(status().isUnauthorized());
 	
 }
 
