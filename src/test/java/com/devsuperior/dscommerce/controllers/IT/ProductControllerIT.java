@@ -1,5 +1,6 @@
 package com.devsuperior.dscommerce.controllers.IT;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -259,4 +260,16 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isUnauthorized());
 		}
+		
+		@Test
+		public void deleteShouldReturnNoContentWhenIdExistsAndAdminLogged() throws Exception {
+
+			ResultActions result = 
+					mockMvc.perform(delete("/products/{id}", existingId)
+						.header("Authorization", "Bearer " + adminToken)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isNoContent());
+		}
+		
 }
