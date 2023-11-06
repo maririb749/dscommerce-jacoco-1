@@ -159,7 +159,7 @@ public class ProductControllerIT {
 		@Test
 		public void insertShouldReturnUnprocessableEntityWhenAdminLoggedAndInvalidDescription() throws Exception {
 			
-			product.setName("ab");
+			product.setDescription("ab");
 			productDTO = new ProductDTO(product);
 			
 			String jsonBody = objectMapper.writeValueAsString(productDTO);
@@ -173,7 +173,24 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isUnprocessableEntity());
 		}
+		@Test
+		public void insertShouldReturnUnprocessableEntityWhenAdminLoggedAndPriceIsNegative() throws Exception {
+			
+			product.setPrice(-1.0);
+			productDTO = new ProductDTO(product);
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(post("/products")
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnprocessableEntity());
 	
 	
 
+}
 }
