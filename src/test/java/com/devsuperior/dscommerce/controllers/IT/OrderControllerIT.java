@@ -15,7 +15,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import com.devsuperior.dscommerce.entities.User;
 import com.devsuperior.dscommerce.tests.TokenUtil;
+import com.devsuperior.dscommerce.tests.UserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -32,11 +34,14 @@ private ObjectMapper objectMapper;
 @Autowired
 private TokenUtil tokenUtil;
 
-private Long existingOrderId;
+private Long existingOrderId,nonExistingOrderId;
 private String  adminUsername, adminPassword;
 private String  clientUsername, clientPassword;
 
 private String  adminToken, clientToken;
+
+private User user;
+
 
 
 @BeforeEach
@@ -51,6 +56,9 @@ void setUp() throws Exception {
     clientToken = tokenUtil.obtainAccessToken(mockMvc, clientUsername, clientPassword);
     
     existingOrderId = 1L;
+    nonExistingOrderId =100L;
+    
+    user = UserFactory.createClientUser();
     
 }
 
@@ -96,5 +104,31 @@ public void findByIdShouldReturnOrderDTOWhenIdExistsAndClientLogged() throws Exc
 	result.andExpect(jsonPath("$.items[1].name").value("Macbook Pro"));
 	result.andExpect(jsonPath("$.total").exists());
 }
+
+@Test
+public void findByIdShouldReturnForbiddenWhenIdExistsAndClientLoggedAndOrderDoesNotBelongUser() throws Exception {
+	
+	Long otherOrderId = 2L;
+	ResultActions result = 
+			mockMvc.perform(get("/orders/{id}", otherOrderId)
+				.header("Authorization", "Bearer " + clientToken)
+				.accept(MediaType.APPLICATION_JSON))
+	            .andDo(MockMvcResultHandlers.print());
+	
+	result.andExpect(status().isForbidden());
+	
+}
+@Test
+public void findByIdShouldReturnNotFoundWhenIdDoesNotExistsAndAdminLogged() throws Exception {
+	
+	ResultActions result = 
+			mockMvc.perform(get("/orders/{id}", nonExistingOrderId)
+				.header("Authorization", "Bearer " + adminToken)
+				.accept(MediaType.APPLICATION_JSON))
+	            .andDo(MockMvcResultHandlers.print());
+	
+	result.andExpect(status().isNotFound());
+	
+  }
 
 }
