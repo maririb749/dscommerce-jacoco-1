@@ -130,5 +130,18 @@ public void findByIdShouldReturnNotFoundWhenIdDoesNotExistsAndAdminLogged() thro
 	result.andExpect(status().isNotFound());
 	
   }
+@Test
+public void findByIdShouldReturnNotFoundWhenIdDoesNotExistsAndClientLogged() throws Exception {
+	
+	ResultActions result = 
+			mockMvc.perform(get("/orders/{id}", nonExistingOrderId)
+				.header("Authorization", "Bearer " + clientToken)
+				.accept(MediaType.APPLICATION_JSON))
+	            .andDo(MockMvcResultHandlers.print());
+	
+	result.andExpect(status().isNotFound());
+	
+}
+
 
 }
