@@ -190,7 +190,22 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isUnprocessableEntity());
 	
-	
-
+}
+		@Test
+		public void insertShouldReturnUnprocessableEntityWhenAdminLoggedAndPriceIsZero() throws Exception {
+			
+			product.setPrice(0.0);
+			productDTO = new ProductDTO(product);
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(post("/products")
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnprocessableEntity());
 }
 }
