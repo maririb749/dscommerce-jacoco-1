@@ -45,8 +45,9 @@ private TokenUtil tokenUtil;
 private Long existingOrderId,nonExistingOrderId;
 private String  adminUsername, adminPassword;
 private String  clientUsername, clientPassword;
+private String adminOnlyUsername, adminOnlyPassword;
 
-private String  adminToken, clientToken,invalidToken;
+private String  adminToken, clientToken,invalidToken,adminOnlyToken;
 
 
 private Order order;
@@ -62,9 +63,12 @@ void setUp() throws Exception {
     adminPassword = "123456";
     clientUsername = "maria@gmail.com";
     clientPassword = "123456";
+    adminOnlyUsername = "ana@gmail.com";
+    adminOnlyPassword = "123456";
     
     adminToken = tokenUtil.obtainAccessToken(mockMvc, adminUsername, adminPassword);
     clientToken = tokenUtil.obtainAccessToken(mockMvc, clientUsername, clientPassword);
+    adminOnlyToken = tokenUtil.obtainAccessToken(mockMvc, adminOnlyUsername, adminOnlyPassword);
 	invalidToken = adminToken + "xpto";
     
     existingOrderId = 1L;
@@ -224,5 +228,20 @@ public void insertShouldReturnOrderDTOCreatedWhenClientLogged() throws Exception
 	result.andExpect(jsonPath("$.items").exists());
 	result.andExpect(jsonPath("$.total").exists());
   }
+
+@Test
+public void insertShouldReturnForbiddenWhenAdminLogged() throws Exception {
+
+	String jsonBody = objectMapper.writeValueAsString(orderDTO);
+	
+	ResultActions result = 
+			mockMvc.perform(post("/orders")
+				.header("Authorization", "Bearer " + adminOnlyToken)
+				.content(jsonBody)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON));
+	
+	result.andExpect(status().isForbidden());
+}
 
 }
