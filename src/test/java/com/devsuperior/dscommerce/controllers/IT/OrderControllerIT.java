@@ -80,7 +80,7 @@ void setUp() throws Exception {
     
 }
 
-@Test
+@Test             
 public void findByIdShouldReturnOrderDTOWhenIdExistsAndAdminLogged() throws Exception {
     ResultActions result =  mockMvc
                     .perform(get("/orders/{id}", existingOrderId)
@@ -148,6 +148,7 @@ public void findByIdShouldReturnNotFoundWhenIdDoesNotExistsAndAdminLogged() thro
 	result.andExpect(status().isNotFound());
 	
   }
+
 @Test
 public void findByIdShouldReturnNotFoundWhenIdDoesNotExistsAndClientLogged() throws Exception {
 	
@@ -173,7 +174,18 @@ public void findByIdShouldReturnUnautorizedWhenIdExistsAndInvalidToken() throws 
 	result.andExpect(status().isUnauthorized());
 	
 }
+
 @Test
+public void findByIdShouldReturnNotFoundWhenIdDoesNotExistAndClientLogged() throws Exception {
+	
+	ResultActions result = 
+			mockMvc.perform(get("/orders/{id}", nonExistingOrderId)
+				.header("Authorization", "Bearer " + clientToken)
+				.accept(MediaType.APPLICATION_JSON));
+	
+	result.andExpect(status().isNotFound());
+}	
+
 public void insertShouldReturnUnprocessableEntityWhenClientLoggedAndOrderHasNoItem() throws Exception {
 	
 	orderDTO.getItems().clear();
@@ -211,8 +223,6 @@ public void insertShouldReturnOrderDTOCreatedWhenClientLogged() throws Exception
 	result.andExpect(jsonPath("$.client").exists());
 	result.andExpect(jsonPath("$.items").exists());
 	result.andExpect(jsonPath("$.total").exists());
-}
-
-
+  }
 
 }
