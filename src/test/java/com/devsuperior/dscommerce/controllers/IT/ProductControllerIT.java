@@ -380,4 +380,18 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isUnauthorized());
 		}
+		@Test
+		public void updateShouldReturnNotFoundWhenIdDoesNotExistAndAdminLogged() throws Exception {
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(put("/products/{id}", nonExistingId)
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isNotFound());		
+		}
 }
