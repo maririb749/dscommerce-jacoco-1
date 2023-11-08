@@ -3,6 +3,7 @@ package com.devsuperior.dscommerce.controllers.IT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -315,5 +316,40 @@ public class ProductControllerIT {
 						.accept(MediaType.APPLICATION_JSON));
 			
 			result.andExpect(status().isUnauthorized());
+		}
+		@Test
+		public void updateShouldReturnUnprocessableEntityWhenIdExistsAndAdminLoggedAndPriceIsZero() throws Exception {
+			
+			product.setPrice(0.0);
+			productDTO = new ProductDTO(product);
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(put("/products/{id}", existingId)
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnprocessableEntity());
+		}
+		
+		@Test
+		public void updateShouldReturnUnprocessableEntityWhenIdExistsAndAdminLoggedAndProductHasNoCategory() throws Exception {
+			
+			product.getCategories().clear();
+			productDTO = new ProductDTO(product);
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(put("/products/{id}", existingId)
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isUnprocessableEntity());
 		}
 }
