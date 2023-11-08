@@ -26,7 +26,7 @@ public class UserControllerIT {
 	private TokenUtil tokenUtil;
 	
 	private String adminUsername, adminPassword, clientUsername, clientPassword;
-	private String adminToken, clientToken;
+	private String adminToken, clientToken, invalidToken;
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -38,7 +38,7 @@ public class UserControllerIT {
 		
 		adminToken = tokenUtil.obtainAccessToken(mockMvc, adminUsername, adminPassword);
 		clientToken = tokenUtil.obtainAccessToken(mockMvc, clientUsername, clientPassword);
-
+        invalidToken = adminToken + "xpto";
 	}
 
 @Test
@@ -73,4 +73,15 @@ public void getMeShouldReturnUserDTOWhenClientLogged() throws Exception {
 	result.andExpect(jsonPath("$.birthDate").value("2001-07-25"));		
 	result.andExpect(jsonPath("$.roles").exists());
  }
+
+@Test
+public void getMeShouldReturnUnauthorizedWhenInvalidToken() throws Exception {
+	
+	ResultActions result = 
+			mockMvc.perform(get("/users/me")
+				.header("Authorization", "Bearer " + invalidToken)
+				.accept(MediaType.APPLICATION_JSON));
+	
+	result.andExpect(status().isUnauthorized());
+}
 }
