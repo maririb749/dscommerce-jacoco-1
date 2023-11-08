@@ -394,4 +394,25 @@ public class ProductControllerIT {
 			
 			result.andExpect(status().isNotFound());		
 		}
+		@Test
+		public void updateShouldReturnProductDTOWhenIdExistsAndAdminLogged() throws Exception {
+			
+			String jsonBody = objectMapper.writeValueAsString(productDTO);
+			
+			ResultActions result = 
+					mockMvc.perform(put("/products/{id}", existingId)
+						.header("Authorization", "Bearer " + adminToken)
+						.content(jsonBody)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON));
+			
+			result.andExpect(status().isOk());
+			result.andExpect(jsonPath("$.id").value(2L));
+			result.andExpect(jsonPath("$.name").value("Console PlayStation 5"));
+			result.andExpect(jsonPath("$.description").value("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
+			result.andExpect(jsonPath("$.price").value(3999.90));
+			result.andExpect(jsonPath("$.imgUrl").value("https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg"));
+			result.andExpect(jsonPath("$.categories[0].id").value(2L));		
+		}
+		
 }
